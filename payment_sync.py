@@ -27,6 +27,9 @@ creds = Credentials.from_service_account_info(GOOGLE_CREDENTIALS, scopes=scope)
 client = gspread.authorize(creds)
 sheet = client.open('Payment Plans').sheet1
 
+# Get today's date
+today = date.today().isoformat()
+
 # Get all records from Airtable
 records = table.all()
 
@@ -50,16 +53,16 @@ for record in records:
             row_index = idx + 2  # +2 for header row and 0-indexing
             break
     
-    # Check if 2nd payment exists
+    # Check if 2nd payment is due today or in the past
     payment_2_date = fields.get('Date of 2nd Payment', '')
     payment_2_amount = fields.get('Amount Due For 2nd Payment', '')
     
-    # Check if 3rd payment exists
+    # Check if 3rd payment is due today or in the past
     payment_3_date = fields.get('Date of 3rd Payment', '')
     payment_3_amount = fields.get('Amount Due For 3rd Payment', '')
     
-    # If 2nd payment exists
-    if payment_2_date and payment_2_amount:
+    # If 2nd payment is due today or in the past
+    if payment_2_date and payment_2_amount and payment_2_date <= today:
         if row_index:
             # Update existing row - columns C and D
             sheet.update_cell(row_index, 3, payment_2_amount)
@@ -70,8 +73,8 @@ for record in records:
             existing_rows.append([client_name, client_email, payment_2_amount, payment_2_date, '', ''])
             row_index = len(existing_rows) + 1
     
-    # If 3rd payment exists
-    if payment_3_date and payment_3_amount:
+    # If 3rd payment is due today or in the past
+    if payment_3_date and payment_3_amount and payment_3_date <= today:
         if row_index:
             # Update existing row - columns E and F
             sheet.update_cell(row_index, 5, payment_3_amount)
@@ -81,3 +84,4 @@ for record in records:
             sheet.append_row([client_name, client_email, '', '', payment_3_amount, payment_3_date])
 
 print('Payment sync complete')
+
