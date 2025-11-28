@@ -20,7 +20,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          pip install -r packages.txt
+          pip install -r payment_packages.txt
       
       - name: Run sync script
         env:
@@ -28,3 +28,4 @@ jobs:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         run: |
           python payment_sync.py
+
