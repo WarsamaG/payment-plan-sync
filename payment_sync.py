@@ -11,7 +11,7 @@ GOOGLE_CREDENTIALS = json.loads(os.environ['GOOGLE_CREDENTIALS'])
 
 # Airtable setup
 BASE_ID = 'appr1ojQ7J6ZkSI3z'  # Your DK Sales Data base ID
-TABLE_ID = 'tblSiOUNtCuZCnlFV'  # Your Payment Plan table ID
+TABLE_ID = 'tblSiOUNtCuZCnIFf'  # Your Payment Plan table ID
 
 api = Api(AIRTABLE_API_KEY)
 table = api.table(BASE_ID, TABLE_ID)
@@ -84,5 +84,3 @@ for record in records:
             sheet.append_row([client_name, client_email, '', '', payment_3_amount, payment_3_date])
 
 print('Payment sync complete')
-
-
