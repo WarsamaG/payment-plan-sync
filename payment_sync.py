@@ -4,39 +4,30 @@ from google.oauth2.service_account import Credentials
 import os
 import json
 from datetime import datetime, date
-
 # Get credentials from environment
 AIRTABLE_API_KEY = os.environ['AIRTABLE_API_KEY']
 GOOGLE_CREDENTIALS = json.loads(os.environ['GOOGLE_CREDENTIALS'])
-
 # Airtable setup
 BASE_ID = 'appr1ojQ7J6ZkSI3z'  # Your DK Sales Data base ID
 TABLE_ID = 'tblSiOUNtCuZCnIFf'  # Your Payment Plan table ID
-
 api = Api(AIRTABLE_API_KEY)
 table = api.table(BASE_ID, TABLE_ID)
-
 # Google Sheets setup
 scope = [
     'https://spreadsheets.google.com/feeds',
     'https://www.googleapis.com/auth/spreadsheets',
     'https://www.googleapis.com/auth/drive'
 ]
-
 creds = Credentials.from_service_account_info(GOOGLE_CREDENTIALS, scopes=scope)
 client = gspread.authorize(creds)
 sheet = client.open('Payment Plans').sheet1
-
 # Get today's date
 today = date.today()
-
 # Get all records from Airtable
 records = table.all()
-
 # Clear existing data (keep header)
 sheet.clear()
-sheet.append_row(['Client Name', 'Client Email', 'Closer', 'Setter', 'Payment Type', 'Payment Date', 'Payment Amount'])
-
+sheet.append_row(['Client Name', 'Client Email', 'Closed By', 'Set By', 'Payment Type', 'Payment Date', 'Payment Amount'])
 # Process each record
 for record in records:
     fields = record['fields']
@@ -69,13 +60,10 @@ for record in records:
     
     # Check 4th payment
     payment_4_date_str = fields.get('Date of 4th Payment', '')
-    payment_4_amount = fields.get('Amount due for 4th Payment', '')  # Note: lowercase 'd' in 'due'
+    payment_4_amount = fields.get('Amount due for 4th Payment', '')
     
     if payment_4_date_str and payment_4_amount:
         payment_4_date = datetime.fromisoformat(payment_4_date_str).date()
         if payment_4_date <= today:
             sheet.append_row([client_name, client_email, closer, setter, '4th Payment', payment_4_date_str, payment_4_amount])
-
 print('Payment sync complete')
-
-
