@@ -35,13 +35,15 @@ records = table.all()
 
 # Clear existing data (keep header)
 sheet.clear()
-sheet.append_row(['Client Name', 'Client Email', 'Payment Type', 'Payment Date', 'Payment Amount'])
+sheet.append_row(['Client Name', 'Client Email', 'Closer', 'Setter', 'Payment Type', 'Payment Date', 'Payment Amount'])
 
 # Process each record
 for record in records:
     fields = record['fields']
     client_name = fields.get('Client Name', '')
     client_email = fields.get('Client Email', '')
+    closer = fields.get('Closer', '')
+    setter = fields.get('Setter', '')
     
     # Skip if no client info
     if not client_name and not client_email:
@@ -54,7 +56,7 @@ for record in records:
     if payment_2_date_str and payment_2_amount:
         payment_2_date = datetime.fromisoformat(payment_2_date_str).date()
         if payment_2_date <= today:
-            sheet.append_row([client_name, client_email, '2nd Payment', payment_2_date_str, payment_2_amount])
+            sheet.append_row([client_name, client_email, closer, setter, '2nd Payment', payment_2_date_str, payment_2_amount])
     
     # Check 3rd payment
     payment_3_date_str = fields.get('Date of 3rd Payment', '')
@@ -63,7 +65,7 @@ for record in records:
     if payment_3_date_str and payment_3_amount:
         payment_3_date = datetime.fromisoformat(payment_3_date_str).date()
         if payment_3_date <= today:
-            sheet.append_row([client_name, client_email, '3rd Payment', payment_3_date_str, payment_3_amount])
+            sheet.append_row([client_name, client_email, closer, setter, '3rd Payment', payment_3_date_str, payment_3_amount])
     
     # Check 4th payment
     payment_4_date_str = fields.get('Date of 4th Payment', '')
@@ -72,7 +74,8 @@ for record in records:
     if payment_4_date_str and payment_4_amount:
         payment_4_date = datetime.fromisoformat(payment_4_date_str).date()
         if payment_4_date <= today:
-            sheet.append_row([client_name, client_email, '4th Payment', payment_4_date_str, payment_4_amount])
+            sheet.append_row([client_name, client_email, closer, setter, '4th Payment', payment_4_date_str, payment_4_amount])
 
 print('Payment sync complete')
+
 
