@@ -33,8 +33,14 @@ for record in records:
     fields = record['fields']
     client_name = fields.get('Client Name', '')
     client_email = fields.get('Client Email', '')
-    closer = fields.get('Closer', '')
-    setter = fields.get('Setter', '')
+    
+    # Get closer and setter - handle if they're lists (lookup fields return lists)
+    closer_raw = fields.get('Closer', '')
+    setter_raw = fields.get('Setter', '')
+    
+    # Convert to string if it's a list
+    closer = closer_raw[0] if isinstance(closer_raw, list) and len(closer_raw) > 0 else closer_raw
+    setter = setter_raw[0] if isinstance(setter_raw, list) and len(setter_raw) > 0 else setter_raw
     
     # Skip if no client info
     if not client_name and not client_email:
