@@ -3,7 +3,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 import os
 import json
-from datetime import date
+from datetime import datetime, date
 
 # Get credentials from environment
 AIRTABLE_API_KEY = os.environ['AIRTABLE_API_KEY']
@@ -28,13 +28,14 @@ client = gspread.authorize(creds)
 sheet = client.open('Payment Plans').sheet1
 
 # Get today's date
-today = date.today().isoformat()
+today = date.today()
 
 # Get all records from Airtable
 records = table.all()
 
-# Get all existing rows (skip header)
-existing_rows = sheet.get_all_values()[1:]  # Skip header row
+# Clear existing data (keep header)
+sheet.clear()
+sheet.append_row(['Client Name', 'Client Email', 'Payment Type', 'Payment Date', 'Payment Amount'])
 
 # Process each record
 for record in records:
@@ -46,42 +47,32 @@ for record in records:
     if not client_name and not client_email:
         continue
     
-    # Find existing row for this client
-    row_index = None
-    for idx, row in enumerate(existing_rows):
-        if len(row) >= 2 and (row[0] == client_name or row[1] == client_email):
-            row_index = idx + 2  # +2 for header row and 0-indexing
-            break
-    
-    # Check if 2nd payment is due today or in the past
-    payment_2_date = fields.get('Date of 2nd Payment', '')
+    # Check 2nd payment
+    payment_2_date_str = fields.get('Date of 2nd Payment', '')
     payment_2_amount = fields.get('Amount Due For 2nd Payment', '')
     
-    # Check if 3rd payment is due today or in the past
-    payment_3_date = fields.get('Date of 3rd Payment', '')
+    if payment_2_date_str and payment_2_amount:
+        payment_2_date = datetime.fromisoformat(payment_2_date_str).date()
+        if payment_2_date <= today:
+            sheet.append_row([client_name, client_email, '2nd Payment', payment_2_date_str, payment_2_amount])
+    
+    # Check 3rd payment
+    payment_3_date_str = fields.get('Date of 3rd Payment', '')
     payment_3_amount = fields.get('Amount Due For 3rd Payment', '')
     
-    # If 2nd payment is due today or in the past
-    if payment_2_date and payment_2_amount and payment_2_date <= today:
-        if row_index:
-            # Update existing row - columns C and D
-            sheet.update_cell(row_index, 3, payment_2_amount)
-            sheet.update_cell(row_index, 4, payment_2_date)
-        else:
-            # Create new row
-            sheet.append_row([client_name, client_email, payment_2_amount, payment_2_date, '', ''])
-            existing_rows.append([client_name, client_email, payment_2_amount, payment_2_date, '', ''])
-            row_index = len(existing_rows) + 1
+    if payment_3_date_str and payment_3_amount:
+        payment_3_date = datetime.fromisoformat(payment_3_date_str).date()
+        if payment_3_date <= today:
+            sheet.append_row([client_name, client_email, '3rd Payment', payment_3_date_str, payment_3_amount])
     
-    # If 3rd payment is due today or in the past
-    if payment_3_date and payment_3_amount and payment_3_date <= today:
-        if row_index:
-            # Update existing row - columns E and F
-            sheet.update_cell(row_index, 5, payment_3_amount)
-            sheet.update_cell(row_index, 6, payment_3_date)
-        else:
-            # Create new row (shouldn't happen but just in case)
-            sheet.append_row([client_name, client_email, '', '', payment_3_amount, payment_3_date])
+    # Check 4th payment
+    payment_4_date_str = fields.get('Date of 4th Payment', '')
+    payment_4_amount = fields.get('Amount due for 4th Payment', '')  # Note: lowercase 'd' in 'due'
+    
+    if payment_4_date_str and payment_4_amount:
+        payment_4_date = datetime.fromisoformat(payment_4_date_str).date()
+        if payment_4_date <= today:
+            sheet.append_row([client_name, client_email, '4th Payment', payment_4_date_str, payment_4_amount])
 
 print('Payment sync complete')
 
